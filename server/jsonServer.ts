@@ -155,6 +155,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 			schemas: JSONSchemaSettings[];
 			format: { enable: boolean; };
 			resultLimit?: number;
+			ignoreTrailingCommas: boolean;
 		};
 		http: {
 			proxy: string;
@@ -207,6 +208,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 	let jsonConfigurationSettings: JSONSchemaSettings[] | undefined = undefined;
 	let schemaAssociations: ISchemaAssociations | SchemaConfiguration[] | undefined = undefined;
 	let formatterRegistration: Thenable<Disposable> | null = null;
+	let ignoreTrailingCommas: boolean = false;
 
 	// The settings have changed. Is send on server activation as well.
 	connection.onDidChangeConfiguration((change) => {
@@ -232,6 +234,8 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 				formatterRegistration = null;
 			}
 		}
+
+		ignoreTrailingCommas = settings.json && settings.json.ignoreTrailingCommas;
 	});
 
 	// The jsonValidation extension configuration has changed
@@ -344,7 +348,8 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		const jsonDocument = getJSONDocument(textDocument);
 		const version = textDocument.version;
 
-		const documentSettings: DocumentLanguageSettings = textDocument.languageId === 'jsonc' ? { comments: 'ignore', trailingCommas: 'warning' } : { comments: 'error', trailingCommas: 'error' };
+		const itc = ignoreTrailingCommas ? 'ignore' : 'warning';
+		const documentSettings: DocumentLanguageSettings = textDocument.languageId === 'jsonc' ? { comments: 'ignore', trailingCommas: itc} : { comments: 'ignore', trailingCommas: itc};
 		languageService.doValidation(textDocument, jsonDocument, documentSettings).then(diagnostics => {
 			setImmediate(() => {
 				const currDocument = documents.get(textDocument.uri);

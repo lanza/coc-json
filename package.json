@@ -37,6 +37,11 @@
             "verbose"
           ]
         },
+        "json.ignoreTrailingCommas": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not to report trailing commas as an error."
+        },
         "json.execArgv": {
           "type": "array",
           "default": [],
